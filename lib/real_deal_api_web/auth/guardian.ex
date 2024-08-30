@@ -29,18 +29,50 @@ defmodule RealDealApiWeb.Auth.Guardian do
 
       account ->
         case validate_password?(password, account.hashed_password) do
-          true -> create_token(account)
+          true -> create_token(account, :access)
           false -> {:error, :unauthorized}
         end
     end
   end
 
-  defp validate_password?(password, hashed_password) do
+  def validate_password?(password, hashed_password) do
     Bcrypt.verify_pass(password, hashed_password)
   end
 
-  defp create_token(account) do
-    {ok, token, _claims} = encode_and_sign(account)
+  defp create_token(account, type) do
+    {ok, token, _claims} = encode_and_sign(account, %{}, token_options(type))
     {ok, account, token}
+  end
+
+  defp token_options(type) do
+    case type do
+      :access -> [token_type: "access", ttl: {2, :hour}]
+      :reset -> [token_type: "reset", ttl: {15, :minute}]
+      :admin -> [token_type: "admin", ttl: {14, :day}]
+    end
+  end
+
+  def after_encode_and_sign(resource, claims, token, _options) do
+    with {:ok, _} <- Guardian.DB.after_encode_and_sign(resource, claims["typ"], claims, token) do
+      {:ok, token}
+    end
+  end
+
+  def on_verify(claims, token, _options) do
+    with {:ok, _} <- Guardian.DB.on_verify(claims, token) do
+      {:ok, claims}
+    end
+  end
+
+  def on_revoke(claims, token, _options) do
+    with {:ok, _} <- Guardian.DB.on_revoke(claims, token) do
+      {:ok, claims}
+    end
+  end
+
+  def on_refresh({old_token, old_claims}, {new_token, new_claims}, _options) do
+    with {:ok, _, _} <- Guardian.DB.on_refresh({old_token, old_claims}, {new_token, new_claims}) do
+      {:ok, {old_token, old_claims}, {new_token, new_claims}}
+    end
   end
 end

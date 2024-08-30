@@ -35,6 +35,11 @@ config :real_deal_api, RealDealApiWeb.Auth.Guardian,
   issuer: "real_deal_api",
   secret_key: "DKqiTctmzT0CERseZlEM4XkpJ7xoJ0S82ZIVtnln5EAGdWSG1hZrhgP3Lxzu7xsj"
 
+config :guardian, Guardian.DB,
+  repo: RealDealApi.Repo,
+  schema_name: "guardian_tokens",
+  sweep_interval: 60
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

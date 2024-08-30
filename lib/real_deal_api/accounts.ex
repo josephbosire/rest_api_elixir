@@ -77,6 +77,25 @@ defmodule RealDealApi.Accounts do
   end
 
   @doc """
+  Get a user Account including profile information
+
+  Returns `nil` if user account is not found
+
+  ##  Examples
+      iex> get_full_account(123)
+      %Account{}
+
+      iex> get_full_account(invalid)
+      nil
+  """
+  def get_full_account(id) do
+    Account
+    |> where(id: ^id)
+    |> preload(:user)
+    |> Repo.one()
+  end
+
+  @doc """
   Creates a account.
 
   ## Examples

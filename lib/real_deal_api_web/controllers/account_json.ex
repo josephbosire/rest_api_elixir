@@ -1,5 +1,6 @@
 defmodule RealDealApiWeb.AccountJSON do
   alias RealDealApi.Accounts.Account
+  alias RealDealApiWeb.UserJSON
 
   @doc """
   Renders a list of accounts.
@@ -19,8 +20,15 @@ defmodule RealDealApiWeb.AccountJSON do
     %{
       id: account.id,
       email: account.email,
-      hashed_password: account.hashed_password
+      hashed_password: account.hashed_password,
+      user: maybe_add_user_profile(account)
     }
+  end
+
+  defp maybe_add_user_profile(%Account{user: %Ecto.Association.NotLoaded{}}), do: nil
+
+  defp maybe_add_user_profile(%Account{} = account) do
+    UserJSON.data(account.user)
   end
 
   def account_token(%{account: account, token: token}) do

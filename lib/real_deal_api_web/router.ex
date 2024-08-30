@@ -23,6 +23,10 @@ defmodule RealDealApiWeb.Router do
   scope "/api", RealDealApiWeb do
     pipe_through [:api, :auth]
 
-    resources "/accounts", AccountController, only: [:show, :index]
+    get "/accounts/:id/sign_out", AccountController, :sign_out
+
+    get "/accounts/refresh_session", AccountController, :refresh_session
+
+    resources "/accounts", AccountController, only: [:show, :index, :update]
   end
 end
